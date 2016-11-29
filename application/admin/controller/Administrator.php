@@ -6,6 +6,7 @@ use think\Request;
 use think\Session;
 use app\admin\model\Admin;
 use app\admin\model\Priv;
+use app\admin\model\Node;
 use think\Db;
 
 class Administrator extends Base{
@@ -15,20 +16,47 @@ class Administrator extends Base{
 		$this->assign('list',$list);
 		return $this->fetch();
 	}
-	public function priv_add(){
+	public function priv_add()
+	{
+		$node = new Node;
+		$list = $node->getNodeAll();
+		$list = Tree($list);
+		$this->assign('list',$list);
 		return $this->fetch();
+	}
+	public function doPrivAdd(Request $request)
+	{
+		$request = Request::instance();
+		$privList = $request->post();
+		$privName = $request->param('roleName');
+		$remark = $request->post('remark');
+		if(!isset($privList) || !isset($privName)){
+			return json('信息填写不完整');
+			exit;
+		}
+		$priv = new Priv;
+		$data = $priv->privNodeAdd($privList);
+		dump($data);
+		exit;
+		if($data){
+			return json('ok');
+		}else{
+			return json('error');
+		}
 	}
 	public function priv_edit(Request $request){
 		$request = Request::instance();
     	$id = $request->param('id');//获取参数id
     	$priv = new Priv;
 		$allow = $priv->getNodes($id);
+		$privMsg = $priv->getPrivOne($id);
     	/*$allow = Db::table('priv_node')
     				->join('node','priv_node.node_id = node.node_id','LEFT')
     				->where('priv_id',$id)
     				->field('priv_id,priv_node.node_id,priv_node.active,name,path,parent,level')
     				->select();*/
     	$list = Tree($allow);
+    	$this->assign('privMsg',$privMsg);
     	$this->assign('id',$id);
     	$this->assign('list',$list);
 		return $this->fetch();
@@ -43,7 +71,14 @@ class Administrator extends Base{
 			return json('信息填写不完整');
 			exit;
 		}
-		$privUpdata = array(
+		$priv = new Priv;
+		$data = $priv->privNodeUpdate($privList);
+		if($data){
+			return json('ok');
+		}else{
+			return json('error');
+		}
+		/*$privUpdata = array(
 				'priv_id'	=>	$privId,
 				'priv_name'	=>	$privName,
 				'remark'	=>	$remark,
@@ -53,13 +88,14 @@ class Administrator extends Base{
 		unset($privList['remark']);
 		foreach ($privList as $key => $value) {
 			$addData[] = array(
-					'priv_id'	=>	intval($privId),
-					'node_id'	=>	intval($key),
-					'active'	=>	intval($value),
+					//'priv_id'	=>	intval($privId),
+					//'node_id'	=>	intval($key),
+					//'active'	=>	intval($value),
+					'priv_id'	=>	$privId,
+					'node_id'	=>	$key,
+					'active'	=>	$value,
 				);
 		}
-		//dump($privUpdata);
-
 		// 启动事务
 		Db::startTrans();
 		try{
@@ -73,6 +109,6 @@ class Administrator extends Base{
 		    // 回滚事务
 		    Db::rollback();
 		    return json('error');
-		}
+		}*/
 	}
 }

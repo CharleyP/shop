@@ -36,8 +36,6 @@ class Administrator extends Base{
 		}
 		$priv = new Priv;
 		$data = $priv->privNodeAdd($privList);
-		dump($data);
-		exit;
 		if($data){
 			return json('ok');
 		}else{
@@ -78,37 +76,30 @@ class Administrator extends Base{
 		}else{
 			return json('error');
 		}
-		/*$privUpdata = array(
-				'priv_id'	=>	$privId,
-				'priv_name'	=>	$privName,
-				'remark'	=>	$remark,
-			);
-		unset($privList['privId']);
-		unset($privList['roleName']);
-		unset($privList['remark']);
-		foreach ($privList as $key => $value) {
-			$addData[] = array(
-					//'priv_id'	=>	intval($privId),
-					//'node_id'	=>	intval($key),
-					//'active'	=>	intval($value),
-					'priv_id'	=>	$privId,
-					'node_id'	=>	$key,
-					'active'	=>	$value,
-				);
-		}
-		// 启动事务
-		Db::startTrans();
-		try{
-			Db::table('priv')->update($privUpdata);
-		    Db::table('priv_node')->where('priv_id',$privId)->delete();
-		    Db::table('priv_node')->insertAll($addData);
-		    // 提交事务
-		    Db::commit();    
-		    return json('ok');
-		} catch (\Exception $e) {
-		    // 回滚事务
-		    Db::rollback();
-		    return json('error');
-		}*/
+	}
+	public function node_list($value='')
+	{	
+		$node = new Node();
+		$list = $node->getNodeAll();
+		$list = Tree($list);
+		$this->assign('list',$list);
+		return $this->fetch();
+	}
+	public function node_edit(Request $request)
+	{
+		$request = Request::instance();
+    	$id = $request->param('id');//获取参数id
+    	$node = new Node();
+    	$nodeMsg = $node->getNodeOne($id);
+    	$nodeParent = $node->getNodeParent();
+    	$this->assign('nodeMsg',$nodeMsg);
+    	$this->assign('nodeParent',$nodeParent);
+    	$this->assign('id',$id);
+		return $this->fetch();
+	}
+	public function doNodeEdit(Request $request)
+	{
+		$request = Request::instance();
+		$privId = $request->param('nodeId');//当前编辑的权限ID
 	}
 }

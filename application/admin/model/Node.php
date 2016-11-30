@@ -9,6 +9,14 @@ class Node extends Model
 
     public function getNodeAll($value='')
     {
-    	return $this->select();
+    	return $this->all();
+    }
+    public function getNodeOne($value='')
+    {
+    	return $this->get($value);
+    }
+    public function getNodeParent($value='')
+    {
+    	return $this->where('level','1')->select();
     }
 }
